@@ -706,22 +706,18 @@ const updateCameraForGrid = (width, height) => {
   controls.update();
 };
 
-// Settings Modal Functions
 window.toggleSettings = function() {
   const modal = document.getElementById('settings-modal');
   modal.classList.toggle('show');
   
   if (modal.classList.contains('show')) {
-    // Update input values to current grid size
     document.getElementById('grid-width').value = gridWidth;
     document.getElementById('grid-height').value = gridHeight;
     
-    // Update input values to current voxel size
     document.getElementById('voxel-width').value = voxelWidth;
     document.getElementById('voxel-height').value = voxelHeight;
     document.getElementById('voxel-depth').value = voxelDepth;
     
-    // Update AI provider UI and show/hide custom settings
     updateAIProviderUI();
     const customSettings = document.getElementById('custom-ai-settings');
     if (aiProvider === 'custom') {
@@ -734,7 +730,6 @@ window.toggleSettings = function() {
   }
 }
 
-// Helper function to set grid dimensions in inputs
 window.setGridDimensions = function(width, height) {
   document.getElementById('grid-width').value = width;
   document.getElementById('grid-height').value = height;
@@ -742,7 +737,7 @@ window.setGridDimensions = function(width, height) {
 
 window.applyGridSize = function(width, height) {
   createWall(width, height);
-  autoSaveState(); // Auto-save after grid size change
+  autoSaveState(); 
   showNotification(i18n.t('notifications.resolutionChanged', { width, height }), 'success');
   toggleSettings();
 }
@@ -759,16 +754,13 @@ window.applyCustomGridSize = function() {
   applyGridSize(width, height);
 }
 
-// Helper function to set voxel dimensions in inputs
 window.setVoxelDimensions = function(width, height, depth) {
   document.getElementById('voxel-width').value = width;
   document.getElementById('voxel-height').value = height;
   document.getElementById('voxel-depth').value = depth;
 }
 
-// Create 3D voxel grid
 function createVoxelGrid(width, height, depth) {
-  // Clear existing cubes
   cubes.forEach(cube => {
     scene.remove(cube);
     cube.geometry.dispose();
@@ -776,7 +768,6 @@ function createVoxelGrid(width, height, depth) {
   });
   cubes = [];
   
-  // Create 3D grid of voxels
   for (let x = -width / 2; x <= width / 2; x++) {
     for (let y = -height / 2; y <= height / 2; y++) {
       for (let z = -depth / 2; z <= depth / 2; z++) {
@@ -796,31 +787,26 @@ function createVoxelGrid(width, height, depth) {
     }
   }
   
-  // Update voxel mode to grid
   voxelMode = 'grid';
   
-  // Store voxel dimensions
   voxelWidth = width;
   voxelHeight = height;
   voxelDepth = depth;
   
-  // Update camera to fit the 3D grid
   const maxDim = Math.max(width, height, depth);
   const distance = maxDim * 2.5;
   camera.position.set(distance, distance, distance);
   camera.lookAt(0, 0, 0);
   
-  // Reset undo/redo history
   history = [];
   historyIndex = -1;
-  saveState(); // Save initial state
+  saveState(); 
 }
 
 window.applyVoxelSize = function(width, height, depth) {
-  // Create 3D voxel grid with specified dimensions
   createVoxelGrid(width, height, depth);
   
-  autoSaveState(); // Auto-save after voxel size change
+  autoSaveState(); 
   showNotification(i18n.t('notifications.voxelSizeChanged', { width, height, depth }), 'success');
   toggleSettings();
 }
@@ -838,34 +824,27 @@ window.applyCustomVoxelSize = function() {
   applyVoxelSize(width, height, depth);
 }
 
-// Start Again - Create new session
 window.startAgain = function() {
-  // Confirm with user
   if (!confirm(i18n.t('settings.startAgainConfirm'))) {
     return;
   }
   
-  // Clear current session storage
   clearSessionState();
   
-  // Reload page without query param to create new session
   window.location.href = window.location.origin + window.location.pathname;
 }
 
-// Export Modal Functions
-let currentExportType = 'image'; // 'image' or '3d'
+let currentExportType = 'image'; 
 
 window.toggleExport = function() {
   const modal = document.getElementById('export-modal');
   modal.classList.toggle('show');
   
   if (modal.classList.contains('show')) {
-    // Set default export type
     setExportType('image');
   }
 }
 
-// Set export type (image or 3D model)
 window.setExportType = function(type) {
   currentExportType = type;
   
@@ -891,7 +870,6 @@ window.setExportType = function(type) {
   }
 }
 
-// Update JPG quality display
 document.addEventListener('DOMContentLoaded', () => {
   const qualitySlider = document.getElementById('jpg-quality');
   const qualityValue = document.getElementById('quality-value');
@@ -904,17 +882,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Export artwork as image
 window.exportArtwork = function(format) {
   const filename = document.getElementById('export-filename').value || 'pixel-art-3d';
   const resolution = parseInt(document.getElementById('export-resolution').value);
   const quality = parseFloat(document.getElementById('jpg-quality').value);
   
-  // Create a canvas to render the scene
   const exportWidth = renderer.domElement.width * resolution;
   const exportHeight = renderer.domElement.height * resolution;
   
-  // Temporarily adjust renderer size
   const originalWidth = renderer.domElement.width;
   const originalHeight = renderer.domElement.height;
   
@@ -922,26 +897,21 @@ window.exportArtwork = function(format) {
   camera.aspect = exportWidth / exportHeight;
   camera.updateProjectionMatrix();
   
-  // Render the scene
   renderer.render(scene, camera);
   
-  // Get the image data
   const dataURL = format === 'png' 
     ? renderer.domElement.toDataURL('image/png')
     : renderer.domElement.toDataURL('image/jpeg', quality);
   
-  // Restore original renderer size
   renderer.setSize(originalWidth, originalHeight);
   camera.aspect = originalWidth / originalHeight;
   camera.updateProjectionMatrix();
   
-  // Download the image
   const link = document.createElement('a');
   link.download = `${filename}.${format}`;
   link.href = dataURL;
   link.click();
   
-  // Show success notification
   const message = format === 'png' 
     ? i18n.t('notifications.exportedAsPNG')
     : i18n.t('notifications.exportedAsJPG');
@@ -950,7 +920,6 @@ window.exportArtwork = function(format) {
   toggleExport();
 }
 
-// Export 3D Model
 window.export3DModel = function(format) {
   const filename = document.getElementById('export-filename').value || 'pixel-art-3d';
   
@@ -959,16 +928,13 @@ window.export3DModel = function(format) {
     return;
   }
   
-  // Create a group containing all cubes
   const exportGroup = new THREE.Group();
   
   cubes.forEach(cube => {
-    // Clone the cube with its geometry and material
     const clonedGeometry = cube.geometry.clone();
     const clonedMaterial = cube.material.clone();
     const clonedCube = new THREE.Mesh(clonedGeometry, clonedMaterial);
     
-    // Copy position
     clonedCube.position.copy(cube.position);
     clonedCube.rotation.copy(cube.rotation);
     clonedCube.scale.copy(cube.scale);
@@ -996,7 +962,6 @@ window.export3DModel = function(format) {
   }
 }
 
-// Export as GLB (GLTF Binary)
 function exportGLB(object, filename) {
   const exporter = new GLTFExporter();
   
@@ -1020,7 +985,6 @@ function exportGLB(object, filename) {
   );
 }
 
-// Export as OBJ
 function exportOBJ(object, filename) {
   const exporter = new OBJExporter();
   const result = exporter.parse(object);
@@ -1035,11 +999,9 @@ function exportOBJ(object, filename) {
   toggleExport();
 }
 
-// Export as STL
 function exportSTL(object, filename) {
   const exporter = new STLExporter();
   
-  // Merge all geometries for STL export
   const geometries = [];
   object.traverse((child) => {
     if (child.isMesh) {
@@ -1049,10 +1011,8 @@ function exportSTL(object, filename) {
     }
   });
   
-  // Create merged geometry
   const mergedGeometry = new THREE.BufferGeometry();
   if (geometries.length > 0) {
-    // Use the first geometry as base
     const positions = [];
     const normals = [];
     
@@ -1084,20 +1044,15 @@ function exportSTL(object, filename) {
   toggleExport();
 }
 
-// ===== GEMINI AI INTEGRATION =====
-
-// Default AI Configuration (System Default)
 const DEFAULT_GEMINI_API_KEY = 'AIzaSyAcu6MqmbJm9yTMIQRstiMJO4ffbvqcRZg';
 const DEFAULT_GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${DEFAULT_GEMINI_API_KEY}`;
 
-// Current AI configuration
 let aiProvider = 'default'; // 'default' or 'custom'
 let customAIConfig = {
   url: '',
   apiKey: ''
 };
 
-// Load AI configuration from localStorage
 function loadAIConfig() {
   try {
     const savedProvider = localStorage.getItem('aiProvider');
@@ -1111,14 +1066,12 @@ function loadAIConfig() {
       customAIConfig = JSON.parse(savedConfig);
     }
     
-    // Update UI if settings modal is loaded
     updateAIProviderUI();
   } catch (error) {
     console.error('Error loading AI config:', error);
   }
 }
 
-// Save AI configuration to localStorage
 function saveAIConfigToStorage() {
   try {
     localStorage.setItem('aiProvider', aiProvider);
@@ -1128,10 +1081,8 @@ function saveAIConfigToStorage() {
   }
 }
 
-// Get current AI endpoint URL
 function getAIEndpointURL() {
   if (aiProvider === 'custom' && customAIConfig.url) {
-    // For custom endpoints, construct URL with API key if provided
     if (customAIConfig.apiKey && !customAIConfig.url.includes('key=')) {
       const separator = customAIConfig.url.includes('?') ? '&' : '?';
       return `${customAIConfig.url}${separator}key=${customAIConfig.apiKey}`;
@@ -1141,7 +1092,6 @@ function getAIEndpointURL() {
   return DEFAULT_GEMINI_API_URL;
 }
 
-// Get current API key
 function getAPIKey() {
   if (aiProvider === 'custom') {
     return customAIConfig.apiKey || '';
@@ -1149,7 +1099,6 @@ function getAPIKey() {
   return DEFAULT_GEMINI_API_KEY;
 }
 
-// Set AI provider (default or custom)
 window.setAIProvider = function(provider) {
   aiProvider = provider;
   saveAIConfigToStorage();
@@ -1158,7 +1107,6 @@ window.setAIProvider = function(provider) {
   const customSettings = document.getElementById('custom-ai-settings');
   if (provider === 'custom') {
     customSettings.classList.remove('hidden');
-    // Load saved values into inputs
     document.getElementById('custom-ai-url').value = customAIConfig.url || '';
     document.getElementById('custom-ai-key').value = customAIConfig.apiKey || '';
   } else {
@@ -1166,7 +1114,6 @@ window.setAIProvider = function(provider) {
   }
 }
 
-// Update AI provider UI buttons
 function updateAIProviderUI() {
   const defaultBtn = document.getElementById('ai-provider-default');
   const customBtn = document.getElementById('ai-provider-custom');
@@ -1186,7 +1133,6 @@ function updateAIProviderUI() {
   }
 }
 
-// Save custom AI configuration
 window.saveCustomAIConfig = function() {
   const url = document.getElementById('custom-ai-url').value.trim();
   const apiKey = document.getElementById('custom-ai-key').value.trim();
@@ -1205,32 +1151,25 @@ window.saveCustomAIConfig = function() {
   showNotification(i18n.t('notifications.aiConfigSaved'), 'success');
 }
 
-// Current AI generation mode
-let aiGenerationMode = '2d'; // '2d' or '3d'
+let aiGenerationMode = '2d'; 
 
-// Toggle AI Prompt Modal
 window.toggleAIPrompt = function() {
   const modal = document.getElementById('ai-prompt-modal');
   modal.classList.toggle('show');
   
   if (modal.classList.contains('show')) {
-    // Update dimension inputs for both modes
     document.getElementById('ai-grid-width').value = gridWidth;
     document.getElementById('ai-grid-height').value = gridHeight;
     document.getElementById('ai-voxel-width').value = 8;
     document.getElementById('ai-voxel-height').value = 8;
     document.getElementById('ai-voxel-depth').value = 8;
-    // Set default mode based on current voxel mode
     setAIMode(voxelMode === 'grid' ? '2d' : '3d');
-    // Clear previous input
     document.getElementById('ai-prompt-input').value = '';
-    // Hide loading state
     document.getElementById('ai-loading').classList.add('hidden');
     document.getElementById('ai-generate-button').classList.remove('hidden');
   }
 }
 
-// Set AI generation mode
 window.setAIMode = function(mode) {
   aiGenerationMode = mode;
   
@@ -1256,7 +1195,6 @@ window.setAIMode = function(mode) {
   }
 }
 
-// Generate pixel art with Gemini AI
 window.generateWithAI = async function() {
   const prompt = document.getElementById('ai-prompt-input').value.trim();
   
@@ -1268,19 +1206,16 @@ window.generateWithAI = async function() {
   const currentAPIKey = getAPIKey();
   const currentEndpoint = getAIEndpointURL();
   
-  // Only check for API key if using default provider
   if (aiProvider === 'default' && currentAPIKey === 'YOUR_GEMINI_API_KEY_HERE') {
     showNotification(i18n.t('notifications.configureAPIKey'), 'error');
     return;
   }
   
-  // For custom provider, check if URL is configured
   if (aiProvider === 'custom' && !customAIConfig.url) {
     showNotification(i18n.t('notifications.configureCustomAI'), 'error');
     return;
   }
   
-  // Show loading state
   document.getElementById('ai-loading').classList.remove('hidden');
   document.getElementById('ai-generate-button').classList.add('hidden');
   
@@ -1298,40 +1233,31 @@ window.generateWithAI = async function() {
     console.error('AI Generation Error:', error);
     showNotification(i18n.t('notifications.generationFailed', { error: error.message }), 'error');
   } finally {
-    // Hide loading state
     document.getElementById('ai-loading').classList.add('hidden');
     document.getElementById('ai-generate-button').classList.remove('hidden');
   }
 }
 
-// Generate 2D pixel art on current grid
 async function generate2DArt(prompt) {
-  // Get dimensions from AI modal inputs
   const width = parseInt(document.getElementById('ai-grid-width').value) || gridWidth;
   const height = parseInt(document.getElementById('ai-grid-height').value) || gridHeight;
   
-  // Validate dimensions
   if (width < 4 || width > 128 || height < 4 || height > 128) {
     throw new Error(i18n.t('notifications.dimensionsError'));
   }
   
-  // If dimensions differ from current grid, recreate the grid
   if (width !== gridWidth || height !== gridHeight) {
     createWall(width, height);
   }
   
-  // Only works in grid mode
   if (voxelMode !== 'grid') {
     throw new Error('2D generation only works in grid mode. Please start with a grid canvas.');
   }
   
-  // Get current color palette
   const colorPalette = getCurrentColorPalette();
   
-  // Build the AI prompt
   const systemPrompt = build2DPrompt(prompt, width, height, colorPalette);
   
-  // Call AI API with current configuration
   const response = await fetch(getAIEndpointURL(), {
     method: 'POST',
     headers: {
@@ -1362,31 +1288,24 @@ async function generate2DArt(prompt) {
   
   const generatedText = extractTextFromResponse(data);
   
-  // Save state before applying AI changes
   saveState();
   
-  // Parse and apply the generated pixel art
   apply2DPixelArt(generatedText, width, height);
 }
 
-// Generate 3D voxel structure
 async function generate3DVoxels(prompt) {
   const width = parseInt(document.getElementById('ai-voxel-width').value) || 8;
   const height = parseInt(document.getElementById('ai-voxel-height').value) || 8;
   const depth = parseInt(document.getElementById('ai-voxel-depth').value) || 8;
   
-  // Validate dimensions
   if (width < 4 || width > 24 || height < 4 || height > 24 || depth < 4 || depth > 24) {
     throw new Error(i18n.t('notifications.dimensionsError3D'));
   }
   
-  // Get current color palette
   const colorPalette = getCurrentColorPalette();
   
-  // Build the AI prompt for 3D voxels
   const systemPrompt = build3DVoxelPrompt(prompt, width, height, depth, colorPalette);
   
-  // Call AI API with current configuration
   const response = await fetch(getAIEndpointURL(), {
     method: 'POST',
     headers: {
@@ -1417,14 +1336,11 @@ async function generate3DVoxels(prompt) {
   
   const generatedText = extractTextFromResponse(data);
   
-  // Save state before applying AI changes
   saveState();
   
-  // Parse and apply the generated voxel structure
   apply3DVoxelStructure(generatedText, width, height, depth);
 }
 
-// Get current color palette
 function getCurrentColorPalette() {
   const palette = {};
   const colorButtons = document.querySelectorAll('.color-button');
@@ -1437,9 +1353,7 @@ function getCurrentColorPalette() {
   return palette;
 }
 
-// Extract text from Gemini API response
 function extractTextFromResponse(data) {
-  // Check if response has expected structure
   if (!data.candidates || !data.candidates[0]) {
     console.error('Unexpected API response structure:', data);
     throw new Error('Invalid response from AI. Please try again.');
@@ -1447,12 +1361,10 @@ function extractTextFromResponse(data) {
   
   const candidate = data.candidates[0];
   
-  // Check for MAX_TOKENS finish reason
   if (candidate.finishReason === 'MAX_TOKENS') {
     throw new Error('Content too large for current settings. Try smaller dimensions.');
   }
   
-  // Handle different response structures
   if (candidate.content && candidate.content.parts && candidate.content.parts[0]) {
     return candidate.content.parts[0].text;
   } else if (candidate.text) {
@@ -1463,7 +1375,6 @@ function extractTextFromResponse(data) {
   }
 }
 
-// Build the prompt for 2D grid generation
 function build2DPrompt(userPrompt, width, height, colorPalette) {
   const colorNames = Object.keys(colorPalette);
   const paletteStr = colorNames.join(', ');
@@ -1486,7 +1397,6 @@ Example 4x4:
 Generate ${width}x${height} for: "${userPrompt}"`;
 }
 
-// Build the prompt for 3D voxel generation with sparse representation
 function build3DVoxelPrompt(userPrompt, width, height, depth, colorPalette) {
   const colorNames = Object.keys(colorPalette);
   const paletteStr = colorNames.join(', ');
@@ -1518,15 +1428,11 @@ Start with [ and end with ]
 DO NOT include any explanatory text.`;
 }
 
-// Apply 2D pixel art from AI response
-// Apply 2D pixel art from AI response
 function apply2DPixelArt(responseText, width, height) {
-  // Use provided dimensions or fall back to current grid dimensions
   const targetWidth = width || gridWidth;
   const targetHeight = height || gridHeight;
   
   try {
-    // Extract JSON from response
     const jsonMatch = responseText.match(/\[\s*\[[\s\S]*\]\s*\]/);
     if (!jsonMatch) {
       throw new Error('Could not find valid JSON array in response');
@@ -1534,7 +1440,6 @@ function apply2DPixelArt(responseText, width, height) {
     
     let pixelData = JSON.parse(jsonMatch[0]);
     
-    // Validate and fix dimensions
     if (pixelData.length !== targetHeight) {
       console.warn(`Grid height mismatch: expected ${targetHeight}, got ${pixelData.length}. Attempting to fix...`);
       
@@ -1547,9 +1452,7 @@ function apply2DPixelArt(responseText, width, height) {
       }
     }
     
-    // Apply colors to the grid
     pixelData.forEach((row, rowIndex) => {
-      // Fix row width if needed
       if (row.length !== targetWidth) {
         console.warn(`Grid width mismatch at row ${rowIndex}: expected ${targetWidth}, got ${row.length}. Fixing...`);
         
@@ -1563,7 +1466,6 @@ function apply2DPixelArt(responseText, width, height) {
       }
       
       row.forEach((colorName, colIndex) => {
-        // Find the cube at this position
         const x = colIndex - Math.floor(targetWidth / 2);
         const y = Math.floor(targetHeight / 2) - rowIndex;
         
@@ -1584,23 +1486,18 @@ function apply2DPixelArt(responseText, width, height) {
   }
 }
 
-// Apply 3D voxel structure from AI response (sparse representation)
 function apply3DVoxelStructure(responseText, width, height, depth) {
   try {
     console.log('Raw response text:', responseText); // Debug log
     
-    // Try multiple JSON extraction patterns
     let jsonMatch = null;
     
-    // Pattern 1: Standard array of objects
     jsonMatch = responseText.match(/\[\s*\{[\s\S]*?\}\s*\]/);
     
-    // Pattern 2: Array with line breaks
     if (!jsonMatch) {
       jsonMatch = responseText.match(/\[[\s\S]*?\{[\s\S]*?\}[\s\S]*?\]/);
     }
     
-    // Pattern 3: Look for any JSON array (more permissive)
     if (!jsonMatch) {
       const startIdx = responseText.indexOf('[');
       const endIdx = responseText.lastIndexOf(']');
@@ -1614,7 +1511,7 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
       throw new Error('Could not find valid JSON array in response');
     }
     
-    console.log('Extracted JSON:', jsonMatch[0]); // Debug log
+    console.log('Extracted JSON:', jsonMatch[0]); 
     
     let voxelData;
     try {
@@ -1632,7 +1529,6 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
     
     console.log(`Generating ${voxelData.length} voxels...`);
     
-    // Clear existing cubes if in single mode or create new scene
     if (voxelMode === 'single') {
       cubes.forEach(cube => {
         scene.remove(cube);
@@ -1642,21 +1538,17 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
       cubes = [];
     }
     
-    // Calculate center offset
     const offsetX = Math.floor(width / 2);
     const offsetY = Math.floor(height / 2);
     const offsetZ = Math.floor(depth / 2);
     
-    // Create voxels from sparse data
     voxelData.forEach((voxel, index) => {
-      // Validate voxel structure
       if (typeof voxel.x !== 'number' || typeof voxel.y !== 'number' || 
           typeof voxel.z !== 'number' || typeof voxel.color !== 'string') {
         console.warn(`Skipping invalid voxel at index ${index}:`, voxel);
         return;
       }
       
-      // Validate bounds
       if (voxel.x < 0 || voxel.x >= width || 
           voxel.y < 0 || voxel.y >= height || 
           voxel.z < 0 || voxel.z >= depth) {
@@ -1664,12 +1556,10 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
         return;
       }
       
-      // Convert to world coordinates (centered)
       const worldX = (voxel.x - offsetX) * 1.05;
       const worldY = (voxel.y - offsetY) * 1.05;
       const worldZ = (voxel.z - offsetZ) * 1.05;
       
-      // Check if cube already exists at this position
       const exists = cubes.some(c => 
         Math.abs(c.position.x - worldX) < 0.01 &&
         Math.abs(c.position.y - worldY) < 0.01 &&
@@ -1681,11 +1571,9 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
         return;
       }
       
-      // Get color
       const normalizedColorName = voxel.color.toLowerCase().trim();
       const colorHex = colors[normalizedColorName] || colors['gray'];
       
-      // Create cube
       const material = new THREE.MeshStandardMaterial({ 
         color: colorHex,
         roughness: 0.7,
@@ -1700,7 +1588,6 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
       cubes.push(cube);
     });
     
-    // Switch to single/add mode if not already
     if (voxelMode !== 'single') {
       voxelMode = 'single';
       if (!ghostCube) {
@@ -1715,8 +1602,6 @@ function apply3DVoxelStructure(responseText, width, height, depth) {
   }
 }
 
-// ===== STARTUP MODAL =====
-
 window.toggleGridSizeSelection = function() {
   const selection = document.getElementById('grid-size-selection');
   selection.classList.toggle('hidden');
@@ -1726,7 +1611,6 @@ window.startMode = function(mode, width = 8, height = 8) {
   const modal = document.getElementById('startup-modal');
   modal.style.display = 'none';
   
-  // Update global mode and dimensions
   voxelMode = mode;
   gridWidth = width;
   gridHeight = height;
@@ -1739,14 +1623,10 @@ window.startMode = function(mode, width = 8, height = 8) {
     createGhostCube();
   }
   
-  // Save initial state
   autoSaveState();
   
-  // Start animation loop
   animate();
 }
-
-// ===== MODE TOGGLE =====
 
 window.toggleMode = function() {
   interactionMode = interactionMode === 'paint' ? 'add' : 'paint';
@@ -1769,8 +1649,6 @@ window.toggleMode = function() {
   }
 }
 
-// ===== SETTINGS MODE TOGGLE =====
-
 window.setSettingsMode = function(settingsMode) {
   const btn2D = document.getElementById('settings-mode-2d');
   const btn3D = document.getElementById('settings-mode-3d');
@@ -1778,22 +1656,18 @@ window.setSettingsMode = function(settingsMode) {
   const config3D = document.getElementById('settings-3d-config');
   
   if (settingsMode === '2d') {
-    // Show 2D configuration, hide 3D
     config2D.classList.remove('hidden');
     config3D.classList.add('hidden');
     
-    // Update button styles
     btn2D.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     btn2D.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
     
     btn3D.classList.remove('border-blue-500', 'bg-blue-500', 'text-white');
     btn3D.classList.add('border-gray-300', 'bg-white', 'text-gray-700');
   } else {
-    // Show 3D configuration, hide 2D
     config3D.classList.remove('hidden');
     config2D.classList.add('hidden');
     
-    // Update button styles
     btn3D.classList.remove('border-gray-300', 'bg-white', 'text-gray-700');
     btn3D.classList.add('border-blue-500', 'bg-blue-500', 'text-white');
     
@@ -1802,6 +1676,3 @@ window.setSettingsMode = function(settingsMode) {
   }
 }
 
-// Don't initialize scene automatically - wait for startup modal choice
-// createWall(8, 8);
-// animate();
